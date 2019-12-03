@@ -9,60 +9,62 @@ import (
 	"strings"
 )
 
+const minNeededFuelToMatter = 1
+
 func main() {
-	f, err := os.Open("input")
+	nums := processInput("input")
+	calcFuelNaive(nums)
+	calcFuelAndDealWithIt(nums)
+}
+
+func processInput(path string) []int64 {
+	var out []int64
+	f, err := os.Open(path)
 	defer f.Close()
 	if err != nil {
 		panic(err)
 	}
-	firstPart(f)
-	f, err = os.Open("input")
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	secondPart(f)
-}
-
-func firstPart(f *os.File) {
 	r := bufio.NewScanner(f)
-	var sum int64
 	for r.Scan() {
-		text := r.Text()
-		text = strings.TrimSpace(text)
+		text := strings.TrimSpace(r.Text())
 		num, err := strconv.ParseInt(text, 0, 0)
 		if err != nil {
 			panic(err)
 		}
-		sum += int64(math.Floor(float64(num/3)) - 2)
+		out = append(out, num)
 	}
-	fmt.Println(sum)
+	return out
 }
 
-func secondPart(f *os.File) {
-	r := bufio.NewScanner(f)
+func calcFuelNaive(nums []int64) {
 	var sum int64
-	for r.Scan() {
-		text := r.Text()
-		text = strings.TrimSpace(text)
-		num, err := strconv.ParseInt(text, 0, 0)
-		if err != nil {
-			panic(err)
-		}
-		sum += getFuelWithSelf(num)
+	for _, num := range nums {
+		sum += calcFuel(num)
 	}
 	fmt.Println(sum)
 }
 
-func getFuelWithSelf(n int64) int64 {
-	rem := int64(math.Floor(float64(n/3)) - 2)
-	sum := rem
+func calcFuelAndDealWithIt(nums []int64) {
+	var sum int64
+	for _, num := range nums {
+		sum += calcFuelWhilePositive(num)
+	}
+	fmt.Println(sum)
+}
+
+func calcFuel(n int64) int64 {
+	return int64(math.Floor(float64(n/3)) - 2)
+}
+
+func calcFuelWhilePositive(n int64) int64 {
+	neededFuel := calcFuel(n)
+	totalNeededFuel := neededFuel
 	for {
-		rem = int64(math.Floor(float64(rem/3)) - 2)
-		if rem < 1 {
+		neededFuel = calcFuel(neededFuel)
+		if neededFuel < minNeededFuelToMatter {
 			break
 		}
-		sum += rem
+		totalNeededFuel += neededFuel
 	}
-	return int64(sum)
+	return totalNeededFuel
 }

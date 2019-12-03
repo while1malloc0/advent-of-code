@@ -2,7 +2,7 @@ package main
 
 import "testing"
 
-func TestGetFuelWithSelf(t *testing.T) {
+func TestCalcFuelWhilePositive(t *testing.T) {
 	cases := []struct {
 		name  string
 		input int64
@@ -14,7 +14,7 @@ func TestGetFuelWithSelf(t *testing.T) {
 	for _, tc := range cases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			got := getFuelWithSelf(tc.input)
+			got := calcFuelWhilePositive(tc.input)
 			if got != tc.want {
 				t.Fatalf("[%s]: Got: %d, Want: %d", tc.name, got, tc.want)
 			}
