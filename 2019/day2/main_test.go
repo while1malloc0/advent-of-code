@@ -2,7 +2,7 @@ package main
 
 import "testing"
 
-func TestHelloWorld(t *testing.T) {
+func TestDayTwoPartOne(t *testing.T) {
 	cases := []struct {
 		name  string
 		input string
@@ -16,7 +16,7 @@ func TestHelloWorld(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			got := execute(tc.input)
+			got := executeString(tc.input)
 			if got != tc.want {
 				t.Fatalf("[%s]: wanted %s got %s", tc.name, tc.want, got)
 			}

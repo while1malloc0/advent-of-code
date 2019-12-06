@@ -19,12 +19,43 @@ func main() {
 		panic(err)
 	}
 	input := strings.TrimSpace(string(f))
-	fmt.Println(execute(input))
+	partOne(input)
+	partTwo(input)
 }
 
-func execute(program string) string {
+func partOne(input string) {
+	fmt.Println(executeString(input))
+}
+
+func partTwo(input string) {
+	rawTokens := strings.Split(input, ",")
+	want := int64(19690720)
+	var noun int64
+	var verb int64
+
+MAIN_LOOP:
+	for noun = 0; noun <= 99; noun++ {
+		for verb = 0; verb <= 99; verb++ {
+			tokens := parseInts(rawTokens)
+			tokens[1] = noun
+			tokens[2] = verb
+			out := execute(tokens)
+			if out[0] == want {
+				break MAIN_LOOP
+			}
+		}
+	}
+	fmt.Printf("%d", 100*noun+verb)
+}
+
+func executeString(program string) string {
 	rawTokens := strings.Split(program, ",")
 	tokens := parseInts(rawTokens)
+	outputTokens := execute(tokens)
+	return strings.Join(parseStrings(outputTokens), ",")
+}
+
+func execute(tokens []int64) []int64 {
 	outputTokens := tokens
 MAIN_LOOP:
 	for i := 0; i < len(tokens); i += 4 {
@@ -44,8 +75,7 @@ MAIN_LOOP:
 			break MAIN_LOOP
 		}
 	}
-
-	return strings.Join(parseStrings(outputTokens), ",")
+	return outputTokens
 }
 
 func parseInts(ss []string) []int64 {
