@@ -1,11 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"strconv"
-	"strings"
+
+	"github.com/while1malloc0/advent-of-code/2020/challenge"
 )
 
 func findSumThree(want int, nums []int) (int, int, int, error) {
@@ -33,32 +32,36 @@ func findSum(want int, nums []int) (int, int, error) {
 }
 
 func main() {
-	f, err := os.OpenFile("input", os.O_RDONLY, os.ModePerm)
-	if err != nil {
-		panic(err)
-	}
-	s := bufio.NewScanner(f)
 	var ins []int
-	for s.Scan() {
-		line := s.Text()
-		line = strings.TrimSpace(line)
-		i, err := strconv.Atoi(line)
+	err := challenge.InputScanFunc("input", func(s string) error {
+		i, err := strconv.Atoi(s)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		ins = append(ins, i)
-	}
-	// Part 1
-	// first, second, err := findSum(2020, ins)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// fmt.Println(first * second)
-
-	// Part 2
-	first, second, third, err := findSumThree(2020, ins)
+		return nil
+	})
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(first * second * third)
+	partOneFn := func() error {
+		first, second, err := findSum(2020, ins)
+		if err != nil {
+			return err
+		}
+		fmt.Println(first * second)
+		return nil
+	}
+	partTwoFn := func() error {
+		first, second, third, err := findSumThree(2020, ins)
+		if err != nil {
+			return err
+		}
+		fmt.Println(first * second * third)
+		return nil
+	}
+	err = challenge.Run(partOneFn, partTwoFn)
+	if err != nil {
+		panic(err)
+	}
 }
