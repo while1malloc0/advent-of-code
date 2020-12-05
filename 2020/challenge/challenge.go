@@ -16,10 +16,10 @@ func Setup() int {
 
 func Run(partOneFn func() error, partTwoFn func() error) error {
 	Setup()
-	if *part == 1 {
-		return partOneFn()
+	if *part == 2 {
+		return partTwoFn()
 	}
-	return partTwoFn()
+	return partOneFn()
 }
 
 func InputScanFunc(fname string, fn func(string) error) error {
