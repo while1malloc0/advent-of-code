@@ -8,6 +8,19 @@ import (
 	"strings"
 )
 
+func findSumThree(want int, nums []int) (int, int, int, error) {
+	for _, n := range nums {
+		for _, m := range nums {
+			for _, x := range nums {
+				if n+m+x == want {
+					return n, m, x, nil
+				}
+			}
+		}
+	}
+	return 0, 0, 0, fmt.Errorf("Could not find three numbers that added to %d", want)
+}
+
 func findSum(want int, nums []int) (int, int, error) {
 	for _, n := range nums {
 		for _, m := range nums {
@@ -35,9 +48,17 @@ func main() {
 		}
 		ins = append(ins, i)
 	}
-	first, second, err := findSum(2020, ins)
+	// Part 1
+	// first, second, err := findSum(2020, ins)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println(first * second)
+
+	// Part 2
+	first, second, third, err := findSumThree(2020, ins)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(first * second)
+	fmt.Println(first * second * third)
 }
