@@ -20,53 +20,72 @@ func TestGridString(t *testing.T) {
 	want := `L.LL
 L.LL
 L#L.
-L#L.
-`
+L#L.`
 	got := input.String()
 	assert.Equal(t, want, got, "Expected grid %#v to print to:\n%s\nBut got\n\n%s", input, want, got)
 }
 
 func TestGetNextCellState(t *testing.T) {
 	testCases := []struct {
-		desc      string
-		cell      cell
-		neighbors []cell
-		want      cell
+		desc        string
+		cell        cell
+		neighbors   []cell
+		maxOccupied int
+		want        cell
 	}{
 		{
 			"floors don't change",
 			FLOOR,
 			[]cell{SEAT, FLOOR, OCCUPIED, SEAT},
+			4,
 			FLOOR,
 		},
 		{
 			"empty seats with no occupied seats become occupied",
 			SEAT,
 			[]cell{SEAT, FLOOR, SEAT, SEAT},
+			4,
 			OCCUPIED,
 		},
 		{
 			"empty seats with 1+ occupied seats stay the same",
 			SEAT,
 			[]cell{SEAT, OCCUPIED, SEAT, SEAT},
+			4,
 			SEAT,
 		},
 		{
-			"occupied seats with 4+ occupied seats become empty",
+			"occupied seats with N+ occupied seats become empty. N = min occupied",
 			OCCUPIED,
 			[]cell{OCCUPIED, OCCUPIED, OCCUPIED, OCCUPIED},
+			4,
+			SEAT,
+		},
+		{
+			"occupied seats with N+ occupied seats become empty. N = min occupied",
+			OCCUPIED,
+			[]cell{OCCUPIED, OCCUPIED, OCCUPIED, OCCUPIED},
+			5,
+			OCCUPIED,
+		},
+		{
+			"occupied seats with N+ occupied seats become empty. N = min occupied",
+			OCCUPIED,
+			[]cell{OCCUPIED, OCCUPIED, OCCUPIED, OCCUPIED, OCCUPIED},
+			5,
 			SEAT,
 		},
 		{
 			"occupied seats with 3 or fewer occupied seats stay occupied",
 			OCCUPIED,
 			[]cell{OCCUPIED, OCCUPIED, OCCUPIED, SEAT},
+			4,
 			OCCUPIED,
 		},
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			got := getNextCellState(tC.cell, tC.neighbors)
+			got := getNextCellState(tC.cell, tC.neighbors, tC.maxOccupied)
 			assert.Equal(t, tC.want, got)
 		})
 	}
@@ -84,7 +103,7 @@ LLLLLLLLLL
 L.LLLLLL.L
 L.LLLLL.LL
 `
-	got := newGridFromString(input)
+	got := newGrid(input, 4, nearestNeighbors)
 	want := &grid{
 		width:  10,
 		height: 10,
@@ -114,11 +133,10 @@ L.LLLLL.LL
 ..L.L.....
 LLLLLLLLLL
 L.LLLLLL.L
-L.LLLLL.LL
-`
-	g := newGridFromString(input)
+L.LLLLL.LL`
+	g := newGrid(input, 4, nearestNeighbors)
 	got := g.neighbors(0, 0)
-	want := []cell{SEAT, SEAT, FLOOR, SEAT, FLOOR, SEAT, SEAT, SEAT}
+	want := []cell{FLOOR, SEAT, SEAT}
 	assert.Equal(t, want, got)
 }
 
@@ -133,9 +151,8 @@ L.LLLLL.LL
 ..L.L.....
 LLLLLLLLLL
 L.LLLLLL.L
-L.LLLLL.LL
-`
-	g := newGridFromString(input)
+L.LLLLL.LL`
+	g := newGrid(input, 4, nearestNeighbors)
 	got := g.neighbors(1, 5)
 	want := []cell{FLOOR, SEAT, SEAT, SEAT, SEAT, SEAT, FLOOR, FLOOR}
 	assert.Equal(t, want, got)
@@ -167,7 +184,7 @@ L.LLLLL.LL`
 	// L.LLLLLL.L
 	// L.LLLLL.LL
 
-	g := newGridFromString(input)
+	g := newGrid(input, 4, nearestNeighbors)
 	g.tick()
 	got := g.String()
 	want := `#.##.##.##
@@ -179,8 +196,7 @@ L.LLLLL.LL`
 ..#.#.....
 ##########
 #.######.#
-#.#####.##
-`
+#.#####.##`
 	assert.Equal(t, want, got)
 }
 
@@ -211,7 +227,7 @@ func TestGridTick_two(t *testing.T) {
 	// L.LLLLLL.L
 	// L.LLLLL.LL
 
-	g := newGridFromString(input)
+	g := newGrid(input, 4, nearestNeighbors)
 	g.tick()
 	got := g.String()
 	want := `#.LL.L#.##
@@ -225,4 +241,74 @@ L.L.L..L..
 #.LLLLLL.L
 #.#LLLL.##`
 	assert.Equal(t, want, got)
+}
+
+func TestLineOfSightNeighbors(t *testing.T) {
+	input := `.......#.
+...#.....
+.#.......
+.........
+..#L....#
+....#....
+.........
+#........
+...#.....`
+	g := newGrid(input, 4, lineOfSightNeighbors)
+	got := g.neighbors(4, 3)
+	want := []cell{OCCUPIED, OCCUPIED, OCCUPIED, OCCUPIED, OCCUPIED, OCCUPIED, OCCUPIED, OCCUPIED}
+	assert.Equal(t, want, got)
+}
+
+func TestLineOfSightNeighbors_empty(t *testing.T) {
+	input := `.##.##.
+#.#.#.#
+##...##
+...L...
+##...##
+#.#.#.#
+.##.##.`
+	g := newGrid(input, 4, lineOfSightNeighbors)
+	got := g.neighbors(3, 3)
+	var want []cell
+	assert.Equal(t, want, got)
+}
+
+func TestTickMaxOccupied(t *testing.T) {
+	input := `L.LL.LL.LL
+LLLLLLL.LL
+L.L.L..L..
+LLLL.LL.LL
+L.LL.LL.LL
+L.LLLLL.LL
+..L.L.....
+LLLLLLLLLL
+L.LLLLLL.L
+L.LLLLL.LL`
+	first := `#.##.##.##
+#######.##
+#.#.#..#..
+####.##.##
+#.##.##.##
+#.#####.##
+..#.#.....
+##########
+#.######.#
+#.#####.##`
+
+	second := `#.LL.LL.L#
+#LLLLLL.LL
+L.L.L..L..
+LLLL.LL.LL
+L.LL.LL.LL
+L.LLLLL.LL
+..L.L.....
+LLLLLLLLL#
+#.LLLLLL.L
+#.LLLLL.L#`
+
+	g := newGrid(input, 5, lineOfSightNeighbors)
+	g.tick()
+	assert.Equal(t, first, g.String())
+	g.tick()
+	assert.Equal(t, second, g.String())
 }

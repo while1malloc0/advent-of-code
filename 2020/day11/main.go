@@ -17,14 +17,22 @@ const (
 	OCCUPIED cell = '#'
 )
 
+type neighborRulesFunc = func(*grid, int, int) []cell
+
 type grid struct {
 	width, height int
 	cells         [][]cell
+
+	neighborRules neighborRulesFunc
+	maxOccupied   int
 }
 
-func newGridFromString(in string) *grid {
-	out := &grid{}
-	r := strings.NewReader(in)
+func newGrid(raw string, maxOccupied int, neighborRules neighborRulesFunc) *grid {
+	out := &grid{
+		neighborRules: neighborRules,
+		maxOccupied:   maxOccupied,
+	}
+	r := strings.NewReader(raw)
 	s := bufio.NewScanner(r)
 	for s.Scan() {
 		row := s.Text()
@@ -39,17 +47,11 @@ func newGridFromString(in string) *grid {
 	return out
 }
 
-// Go's mod behavior is different than basically every other languages. There's
-// discussions as to why on the internet. They're too pedantic to be linked too.
-func actualMod(a, b int) int {
-	return ((a % b) + b) % b
+func (g *grid) neighbors(y, x int) []cell {
+	return g.neighborRules(g, y, x)
 }
 
-func (g *grid) neighbors(y, x int) []cell {
-	type coordinate struct {
-		x, y int
-	}
-
+func nearestNeighbors(g *grid, y, x int) []cell {
 	var cells []cell
 
 	// diag left
@@ -91,26 +93,98 @@ func (g *grid) neighbors(y, x int) []cell {
 	if (y+1 < g.height) && (x+1 < g.width) {
 		cells = append(cells, g.cells[y+1][x+1])
 	}
-	// diagUpLeft := coordinate{x: actualMod(x-1, g.width), y: actualMod(y-1, g.height)}
-	// up := coordinate{x: x, y: actualMod(y-1, g.height)}
-	// diagUpRight := coordinate{x: actualMod(x+1, g.width), y: actualMod(y-1, g.height)}
-	// left := coordinate{x: actualMod(x-1, g.width), y: y}
-	// right := coordinate{x: actualMod(x+1, g.width), y: y}
-	// diagDownLeft := coordinate{x: actualMod(x-1, g.width), y: actualMod(y+1, g.height)}
-	// down := coordinate{x: x, y: actualMod(y+1, g.height)}
-	// diagDownRight := coordinate{x: actualMod(x+1, g.width), y: actualMod(y+1, g.height)}
 
 	return cells
-	// return []cell{
-	// 	g.cells[diagUpLeft.y][diagUpLeft.x],
-	// 	g.cells[up.y][up.x],
-	// 	g.cells[diagUpRight.y][diagUpRight.x],
-	// 	g.cells[left.y][left.x],
-	// 	g.cells[right.y][right.x],
-	// 	g.cells[diagDownLeft.y][diagDownLeft.x],
-	// 	g.cells[down.y][down.x],
-	// 	g.cells[diagDownRight.y][diagDownRight.x],
-	// }
+}
+
+func lineOfSightNeighbors(g *grid, y, x int) []cell {
+	var cells []cell
+
+	// diag up left
+	dy, dx := y-1, x-1
+	for dy >= 0 && dx >= 0 {
+		if g.cells[dy][dx] != FLOOR {
+			cells = append(cells, g.cells[dy][dx])
+			break
+		}
+		dy--
+		dx--
+	}
+
+	// up
+	dy = y - 1
+	for dy >= 0 {
+		if g.cells[dy][x] != FLOOR {
+			cells = append(cells, g.cells[dy][x])
+			break
+		}
+		dy--
+	}
+
+	// diag up right
+	dy, dx = y-1, x+1
+	for dy >= 0 && dx < g.width {
+		if g.cells[dy][dx] != FLOOR {
+			cells = append(cells, g.cells[dy][dx])
+			break
+		}
+		dy--
+		dx++
+	}
+
+	// left
+	dx = x - 1
+	for dx >= 0 {
+		if g.cells[y][dx] != FLOOR {
+			cells = append(cells, g.cells[y][dx])
+			break
+		}
+		dx--
+	}
+
+	// right
+	dx = x + 1
+	for dx < g.width {
+		if g.cells[y][dx] != FLOOR {
+			cells = append(cells, g.cells[y][dx])
+			break
+		}
+		dx++
+	}
+
+	// diag left down
+	dy, dx = y+1, x-1
+	for dy < g.height && dx >= 0 {
+		if g.cells[dy][dx] != FLOOR {
+			cells = append(cells, g.cells[dy][dx])
+			break
+		}
+		dy++
+		dx--
+	}
+
+	// down
+	dy = y + 1
+	for dy < g.height {
+		if g.cells[dy][x] != FLOOR {
+			cells = append(cells, g.cells[dy][x])
+			break
+		}
+		dy++
+	}
+
+	// diag down right
+	dy, dx = y+1, x+1
+	for dy < g.height && dx < g.width {
+		if g.cells[dy][dx] != FLOOR {
+			cells = append(cells, g.cells[dy][dx])
+			break
+		}
+		dy++
+		dx++
+	}
+
+	return cells
 }
 
 func (g *grid) tick() {
@@ -119,7 +193,7 @@ func (g *grid) tick() {
 		var row []cell
 		for x := 0; x < g.width; x++ {
 			neighbors := g.neighbors(y, x)
-			nextState := getNextCellState(g.cells[y][x], neighbors)
+			nextState := getNextCellState(g.cells[y][x], neighbors, g.maxOccupied)
 			row = append(row, nextState)
 		}
 		nextCells = append(nextCells, row)
@@ -127,7 +201,7 @@ func (g *grid) tick() {
 	g.cells = nextCells
 }
 
-func getNextCellState(c cell, neighbors []cell) cell {
+func getNextCellState(c cell, neighbors []cell, maxOccupied int) cell {
 	switch c {
 	case FLOOR:
 		// Floors don't change
@@ -152,7 +226,7 @@ func getNextCellState(c cell, neighbors []cell) cell {
 				numOccupied++
 			}
 		}
-		if numOccupied >= 4 {
+		if numOccupied >= maxOccupied {
 			return SEAT
 		}
 		return OCCUPIED
@@ -179,7 +253,7 @@ func main() {
 		if err != nil {
 			return err
 		}
-		g := newGridFromString(string(in))
+		g := newGrid(string(in), 4, nearestNeighbors)
 		// g.tick()
 		// g.tick()
 		for {
@@ -201,5 +275,30 @@ func main() {
 		return nil
 	}
 
-	challenge.Run(partOneFunc, nil)
+	partTwoFunc := func() error {
+		in, err := ioutil.ReadFile("input")
+		if err != nil {
+			return err
+		}
+		g := newGrid(string(in), 5, lineOfSightNeighbors)
+		for {
+			lastState := g.String()
+			g.tick()
+			if g.String() == lastState {
+				break
+			}
+		}
+		var count int
+		for y := 0; y < g.height; y++ {
+			for x := 0; x < g.width; x++ {
+				if g.cells[y][x] == OCCUPIED {
+					count++
+				}
+			}
+		}
+		fmt.Println(count)
+		return nil
+	}
+
+	challenge.Run(partOneFunc, partTwoFunc)
 }
