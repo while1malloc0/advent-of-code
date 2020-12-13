@@ -38,3 +38,8 @@ func InputScanFunc(fname string, fn func(string) error) error {
 	}
 	return nil
 }
+
+// ActualMod makes up for the fact that Go's mod behavior is suspect
+func ActualMod(x, y int) int {
+	return ((x % y) + y) % y
+}
