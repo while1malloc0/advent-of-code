@@ -151,7 +151,11 @@ func runFloatingProgram(in string) (int, error) {
 	s := bufio.NewScanner(r)
 
 	var mask string
-	var memory [67682591465 + 1]int
+	// Original solution
+	// var memory [67682591465 + 1]int
+
+	// Clever optimized solution for sparse arrays. Thanks internet
+	memory := map[int64]int{}
 
 	for s.Scan() {
 		line := s.Text()
