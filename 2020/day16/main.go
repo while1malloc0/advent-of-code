@@ -142,7 +142,7 @@ func filterInvalidTickets(in []ticket, ng *numberRangeGroup) []ticket {
 func getColumns(in []ticket) [][]int {
 	var out [][]int
 
-	for column := 0; column < len(in); column++ {
+	for column := 0; column < len(in[0]); column++ {
 		var row []int
 		for i := range in {
 			row = append(row, in[i][column])
@@ -154,22 +154,81 @@ func getColumns(in []ticket) [][]int {
 }
 
 func getFieldPositions(in []ticket, ngs []*numberRangeGroup) []string {
-	var out []string
-
 	cols := getColumns(in)
 
-	for _, col := range cols {
+	// Set-ish thing
+	positions := map[string]map[int]struct{}{}
+
+	for i, col := range cols {
 		t := ticket(col)
-		for i := range ngs {
-			tv := &ticketValidation{ticket: t, ranges: ngs[i]}
+		for j := range ngs {
+			tv := &ticketValidation{ticket: t, ranges: ngs[j]}
 			invalid := tv.findInvalid()
 			if invalid == NoInvalid {
-				out = append(out, ngs[i].name)
+				if positions[ngs[j].name] == nil {
+					positions[ngs[j].name] = map[int]struct{}{}
+				}
+				positions[ngs[j].name][i] = struct{}{}
 			}
 		}
 	}
 
+	for {
+		foundAll := true
+		for i := range positions {
+			if len(positions[i]) > 1 {
+				foundAll = false
+				break
+			}
+		}
+		if foundAll {
+			break
+		}
+		for i := range positions {
+			if len(positions[i]) == 1 {
+				for val := range positions[i] {
+					for j := range positions {
+						if j == i {
+							continue
+						}
+						if len(positions[j]) == 1 {
+							continue
+						}
+						delete(positions[j], val)
+					}
+				}
+			}
+		}
+	}
+
+	out := []string{}
+	for range positions {
+		out = append(out, "")
+	}
+
+	for k := range positions {
+		for i := range positions[k] {
+			out[i] = k
+		}
+	}
+
 	return out
+}
+
+func parseMyTicket(in string) ticket {
+	bottomHalf := strings.Split(in, "your ticket:\n")[1]
+	numStr := strings.Split(bottomHalf, "\n")[0]
+	numStrs := strings.Split(numStr, ",")
+	var t ticket
+	for i := range numStrs {
+		num, err := strconv.Atoi(numStrs[i])
+		if err != nil {
+			panic(err)
+		}
+		t = append(t, num)
+	}
+
+	return t
 }
 
 func main() {
@@ -197,5 +256,42 @@ func main() {
 		return nil
 	}
 
-	challenge.Run(partOneFunc, nil)
+	partTwoFunc := func() error {
+		in, err := ioutil.ReadFile("input")
+		if err != nil {
+			return err
+		}
+		ngs := parseNumberRangeGroups(string(in))
+		tickets := parseTickets(string(in))
+
+		var validTickets []ticket
+
+		for i := range tickets {
+			var invalidFor int
+			for j := range ngs {
+				tv := &ticketValidation{ticket: tickets[i], ranges: ngs[j]}
+				if tv.findInvalid() != NoInvalid {
+					invalidFor++
+				}
+			}
+			if invalidFor == len(ngs) {
+				continue
+			}
+			validTickets = append(validTickets, tickets[i])
+		}
+
+		positions := getFieldPositions(validTickets, ngs)
+
+		myTicket := parseMyTicket(string(in))
+
+		result := 1
+		for i := range positions {
+			if strings.HasPrefix(positions[i], "departure") {
+				result *= myTicket[i]
+			}
+		}
+		fmt.Println(result)
+		return nil
+	}
+	challenge.Run(partOneFunc, partTwoFunc)
 }
