@@ -88,10 +88,29 @@ func parseRegexHelper(m map[string]string, in string) string {
 		if char == "" {
 			continue
 		}
+		if char == "8" {
+			out += parseRegexHelper(m, m["42"]) + "+"
+			continue
+		}
+		if char == "11" {
+			out += "("
+			for i := 1; i <= 10; i++ {
+				out += "|"
+				out += fmt.Sprintf(
+					"%s{%d}%s{%d}",
+					parseRegexHelper(m, m["42"]),
+					i,
+					parseRegexHelper(m, m["31"]),
+					i,
+				)
+			}
+			out += ")"
+			continue
+		}
 		if !isTerminalRule(m[char]) {
 			out += "("
 		}
-		out += parseRegexHelper(m, m[string(char)])
+		out += parseRegexHelper(m, m[char])
 		if !isTerminalRule(m[char]) {
 			out += ")"
 		}
