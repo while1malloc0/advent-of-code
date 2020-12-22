@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
+	"sort"
 	"strings"
 
 	"github.com/while1malloc0/advent-of-code/2020/challenge"
@@ -79,6 +80,16 @@ func getItemsLines(in string) [][]string {
 	return out
 }
 
+func removeElement(in []string, toRemove string) []string {
+	var out []string
+	for _, s := range in {
+		if s != toRemove {
+			out = append(out, s)
+		}
+	}
+	return out
+}
+
 func main() {
 	partOneFunc := func() error {
 		in, err := ioutil.ReadFile("input")
@@ -115,5 +126,78 @@ func main() {
 		return nil
 	}
 
-	challenge.Run(partOneFunc, nil)
+	partTwoFunc := func() error {
+		in, err := ioutil.ReadFile("input")
+		if err != nil {
+			return err
+		}
+		ingredientList := parseIngredientList(string(in))
+
+		candidates := ingredientListToCandidates(ingredientList)
+		itemLines := getItemsLines(string(in))
+
+		allEncrypted := map[string]int{}
+		for _, itemLine := range itemLines {
+			for i := range itemLine {
+				allEncrypted[itemLine[i]]++
+			}
+		}
+
+		inert := []string{}
+
+	outer:
+		for encrypted := range allEncrypted {
+			for _, items := range candidates {
+				for i := range items {
+					if encrypted == items[i] {
+						continue outer
+					}
+				}
+			}
+			inert = append(inert, encrypted)
+		}
+
+	allFound:
+		for {
+			for i := range candidates {
+				if len(candidates[i]) > 1 {
+					break
+				}
+				break allFound
+			}
+
+			for i := range candidates {
+				if len(candidates[i]) == 1 {
+					item := candidates[i][0]
+					for j := range candidates {
+						if i == j {
+							continue
+						}
+						candidates[j] = removeElement(candidates[j], item)
+					}
+				}
+			}
+		}
+
+		keys := []string{}
+		for i := range candidates {
+			keys = append(keys, i)
+		}
+
+		sort.Strings(keys)
+		sb := &strings.Builder{}
+		for i := range keys {
+			if i != 0 {
+				sb.WriteRune(',')
+			}
+			sb.WriteString(candidates[keys[i]][0])
+		}
+
+		result := sb.String()
+		fmt.Println(result)
+
+		return nil
+	}
+
+	challenge.Run(partOneFunc, partTwoFunc)
 }
