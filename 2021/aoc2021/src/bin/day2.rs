@@ -3,12 +3,19 @@ fn main() {
     let directions = parse_directions(input);
     let mut coordinate = Coordinate::new();
     coordinate.apply(directions);
-    let got = coordinate.position * coordinate.depth;
-    println!("Part 1: {:?}", got);
+    let p1 = coordinate.position * coordinate.depth;
+    println!("Part 1: {:?}", p1);
+
+    let mut p2coordinate = Coordinate::new();
+    let p2directions = parse_directions(input);
+    p2coordinate.apply_with_aim(p2directions);
+    let p2 = p2coordinate.position * p2coordinate.depth;
+    println!("Part 2: {:?}", p2)
 }
 
 #[derive(Debug)]
 struct Coordinate {
+    aim: i32,
     depth: i32,
     position: i32,
 }
@@ -16,6 +23,7 @@ struct Coordinate {
 impl Coordinate {
     fn new() -> Self {
         return Coordinate {
+            aim: 0,
             depth: 0,
             position: 0,
         };
@@ -27,6 +35,20 @@ impl Coordinate {
                 Direction::Forward => self.position += v.velocity,
                 Direction::Up => self.depth -= v.velocity,
                 Direction::Down => self.depth += v.velocity,
+            }
+        }
+        self
+    }
+
+    fn apply_with_aim(&mut self, vectors: Vec<Vector>) -> &Self {
+        for v in vectors {
+            match v.direction {
+                Direction::Forward => {
+                    self.position += v.velocity;
+                    self.depth += self.aim * v.velocity;
+                }
+                Direction::Up => self.aim -= v.velocity,
+                Direction::Down => self.aim += v.velocity,
             }
         }
         self
@@ -83,12 +105,22 @@ mod tests {
     use super::*;
 
     #[test]
-    fn e2e() {
+    fn part1() {
         const INPUT: &str = include_str!("../../inputs/2.example.txt");
         let mut coordinate = Coordinate::new();
         let directions = parse_directions(INPUT);
         coordinate.apply(directions);
         let got = coordinate.position * coordinate.depth;
         assert_eq!(got, 150);
+    }
+
+    #[test]
+    fn part2() {
+        const INPUT: &str = include_str!("../../inputs/2.example.txt");
+        let mut coordinate = Coordinate::new();
+        let directions = parse_directions(INPUT);
+        coordinate.apply_with_aim(directions);
+        let got = coordinate.position * coordinate.depth;
+        assert_eq!(got, 900);
     }
 }
