@@ -1,3 +1,6 @@
+tasks:
+  - name: "Set Rust version to nightly"
+    command: "rustup default nightly"
 vscode:
   extensions:
     - "swellaby.rust-pack"
