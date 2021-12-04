@@ -1,24 +1,30 @@
-use std::collections::VecDeque;
-
 fn main() {
     println!("working!");
 }
 
 struct BingoGame {
     cards: Vec<BingoCard>,
-    uncalled_nums: VecDeque<u32>,
+    uncalled_nums: Vec<u32>,
 }
 
 impl BingoGame {
     fn play(&mut self) -> Result<(BingoCard, u32), &str> {
-        for i in 0..self.uncalled_nums {}
+        for val in self.uncalled_nums {
+            for card in self.cards {
+                let winner: bool = card.mark(val);
+                if winner {
+                    return Ok((card, val));
+                }
+            }
+        }
+        Err("no winner found")
     }
 }
 
 impl From<&str> for BingoGame {
     fn from(input: &str) -> Self {
         let splitted: Vec<&str> = input.split("\n\n").collect();
-        let unparsed_nums: VecDeque<u32> = splitted[0]
+        let unparsed_nums: Vec<u32> = splitted[0]
             .split(',')
             .map(|x| x.parse().expect("could not parse num"))
             .collect();
@@ -66,6 +72,30 @@ impl BingoCard {
             }
         }
         uncalled.into_iter()
+    }
+
+    fn mark(&mut self, val: u32) -> bool {
+        for row in self.rows() {
+            for space in row {
+                if space.val == val {
+                    space.called = true;
+                }
+            }
+        }
+
+        for row in self.rows() {
+            if row.iter().all(|space| space.called) {
+                return true;
+            }
+        }
+
+        for col in self.cols() {
+            if col.iter().all(|space| space.called) {
+                return true;
+            }
+        }
+
+        false
     }
 }
 
