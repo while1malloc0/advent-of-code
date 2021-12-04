@@ -1,6 +1,10 @@
 tasks:
-  - name: "Set Rust version to nightly"
-    command: "rustup default nightly"
+  - name: Set Rust version to nightly
+    command: rustup default nightly
+  - name: Install Rust tooling
+    command: rustup component add --toolchain nightly-x86_64-unknown-linux-gnu rust-analysis rust-src rls clippy
+  - name: Install entr
+    command: sudo apt update && sudo apt install entr
 vscode:
   extensions:
     - "swellaby.rust-pack"
