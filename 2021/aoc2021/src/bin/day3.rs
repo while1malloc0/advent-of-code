@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 
 fn main() {
-    // let report: Report = include_str!("../../inputs/3.example.txt").into();
-    // let answer = report.gamma.decimal() * report.epsilon.decimal();
-    // println!("{}", answer);
+    let report: Report = include_str!("../../inputs/3.txt").into();
+    let p1 = report.gamma.decimal() * report.epsilon.decimal();
+    println!("Part 1: {}", p1);
 
-    let bsl: BitStringList = include_str!("../../inputs/3.example.txt").into();
-    Report::calc_co2(&bsl);
+    let p2 = report.co2.decimal() * report.oxygen.decimal();
+    println!("Part 2: {}", p2);
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -60,18 +60,19 @@ impl BitStringList {
         self.0.iter().enumerate()
     }
 
-    pub fn most_common(&self, idx: usize) -> Option<u32> {
+    pub fn most_common(&self, idx: usize) -> u32 {
         let mut counts: HashMap<char, u32> = HashMap::new();
         for bs in &self.0 {
             let bit = bs.0.chars().nth(idx).unwrap();
             let current = counts.entry(bit).or_insert(0);
             *current += 1;
         }
-        let max_val = counts.values().max().unwrap();
-        for k in counts.keys() {
-            if counts.get(k).unwrap() == max_val {
-                return Some(k.to_string().parse().unwrap());
-            }
+        if counts.get(&'1') == counts.get(&'0') {
+            1
+        } else if counts.get(&'1') < counts.get(&'0') {
+            0
+        } else {
+            1
         }
     }
 
@@ -140,9 +141,9 @@ impl Report {
 
     fn calc_co2(bitstrings: &BitStringList) -> BitString {
         let mut candidates = bitstrings.0.clone();
-        println!("calc_co2: {:?}", candidates);
         for i in 0..bitstrings.str_len() {
-            let lc = bitstrings.least_common(i);
+            let tmp = BitStringList(candidates.clone());
+            let lc = tmp.least_common(i);
             candidates = candidates
                 .into_iter()
                 .filter(|x| {
@@ -155,15 +156,18 @@ impl Report {
                         == lc
                 })
                 .collect();
+            if candidates.len() == 1 {
+                return candidates[0].clone();
+            }
         }
         candidates[0].clone()
     }
 
     fn calc_oxygen(bitstrings: &BitStringList) -> BitString {
         let mut candidates = bitstrings.0.clone();
-        println!("{:?}", candidates);
         for i in 0..bitstrings.str_len() {
-            let mc = bitstrings.most_common(i);
+            let tmp = BitStringList(candidates.clone());
+            let mc = tmp.most_common(i);
             candidates = candidates
                 .into_iter()
                 .filter(|x| {
@@ -176,6 +180,9 @@ impl Report {
                         == mc
                 })
                 .collect();
+            if candidates.len() == 1 {
+                return candidates[0].clone();
+            }
         }
         candidates[0].clone()
     }
@@ -215,6 +222,9 @@ mod test {
     fn bitstring_decimal() {
         let bs: BitString = "10110".into();
         assert_eq!(bs.decimal(), 22);
+
+        let bs2: BitString = "10111".into();
+        assert_eq!(bs2.decimal(), 23);
     }
 
     #[test]
