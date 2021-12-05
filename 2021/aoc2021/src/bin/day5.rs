@@ -46,24 +46,27 @@ impl Line {
             // get start and end x and y
             // if x1 < x2, x++, otherwise x--
             // if y1 < y2, y++, otherwise y--
-            let (startx, endx) = if self.start.0 > self.end.0 {
-                (self.end.0, self.end.0)
-            } else {
-                (self.start.0, self.end.0)
-            };
+            let (mut x, mut y) = (self.start.0, self.start.1);
+            let (endx, endy) = (self.end.0, self.end.1);
 
-            let (starty, endy) = if self.start.1 > self.end.1 {
-                (self.end.1, self.end.1)
-            } else {
-                (self.start.1, self.end.1)
-            };
+            result.push((x, y));
+            loop {
+                if x == endx && y == endy {
+                    break;
+                }
+                if x < endx {
+                    x += 1;
+                } else {
+                    x -= 1;
+                }
 
-            let (mut i, mut j) = (startx, starty);
-            println!("Start: {} {}", startx, starty);
-            while i <= endx && j <= endy {
-                i += 1;
-                j += 1;
-                result.push((i, j))
+                if y < endy {
+                    y += 1;
+                } else {
+                    y -= 1;
+                }
+
+                result.push((x, y))
             }
         }
 
@@ -201,7 +204,6 @@ mod test {
     }
 
     #[test]
-    #[ignore]
     fn p2_e2e() {
         let subject: Lines = include_str!("../../inputs/5.example.txt").into();
         let got = p2(subject);
