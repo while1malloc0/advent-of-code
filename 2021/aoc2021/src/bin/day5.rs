@@ -1,7 +1,13 @@
 use std::collections::HashMap;
 
 fn main() {
-    println!("Working");
+    let p1_in: Lines = include_str!("../../inputs/5.txt").into();
+    let p1_answer = p1(p1_in);
+    println!("Part 1: {}", p1_answer);
+
+    let p2_in: Lines = include_str!("../../inputs/5.txt").into();
+    let p2_answer = p2(p2_in);
+    println!("Part 2: {}", p2_answer);
 }
 
 #[derive(Clone)]
@@ -14,21 +20,51 @@ impl Line {
     fn coords(&self) -> Result<Vec<(u32, u32)>, &str> {
         let mut result: Vec<(u32, u32)> = vec![];
 
-        // TODO need to handle case where start < end for some coordinates (e.g. they go down or left)
-        panic!("start here");
         if self.start.1 == self.end.1 {
             // case 1: line is horizontal
-            for i in self.start.0..=self.end.0 {
+            // handle cases going right to left
+            let (start, end) = if self.start.0 > self.end.0 {
+                (self.end.0, self.start.0)
+            } else {
+                (self.start.0, self.end.0)
+            };
+            for i in start..=end {
                 result.push((i as u32, self.start.1))
             }
         } else if self.start.0 == self.end.0 {
             // case 2: line is vertical
-            for i in self.start.1..=self.end.1 {
+            // handle cases going right to left
+            let (start, end) = if self.start.1 > self.end.1 {
+                (self.end.1, self.start.1)
+            } else {
+                (self.start.1, self.end.1)
+            };
+            for i in start..=end {
                 result.push((self.start.0, i as u32));
             }
         } else {
-            // case 3: line is diagnal, and we don't do that here
-            return Err("we only do horizontal or vertical lines here");
+            // get start and end x and y
+            // if x1 < x2, x++, otherwise x--
+            // if y1 < y2, y++, otherwise y--
+            let (startx, endx) = if self.start.0 > self.end.0 {
+                (self.end.0, self.end.0)
+            } else {
+                (self.start.0, self.end.0)
+            };
+
+            let (starty, endy) = if self.start.1 > self.end.1 {
+                (self.end.1, self.end.1)
+            } else {
+                (self.start.1, self.end.1)
+            };
+
+            let (mut i, mut j) = (startx, starty);
+            println!("Start: {} {}", startx, starty);
+            while i <= endx && j <= endy {
+                i += 1;
+                j += 1;
+                result.push((i, j))
+            }
         }
 
         Ok(result)
@@ -85,11 +121,19 @@ impl Lines {
             .filter(|line| line.start.0 == line.end.0)
             .collect()
     }
+
+    fn diagonal(&self) -> Vec<Line> {
+        self.0
+            .clone()
+            .into_iter()
+            .filter(|line| line.start.0 != line.end.0 && line.start.1 != line.end.1)
+            .collect()
+    }
 }
 
 impl From<&str> for Lines {
     fn from(input: &str) -> Self {
-        let lines: Vec<Line> = input.split("\n").map(Line::from).collect();
+        let lines: Vec<Line> = input.trim().split("\n").map(Line::from).collect();
         Lines(lines)
     }
 }
@@ -110,7 +154,35 @@ fn p1(lines: Lines) -> u32 {
         }
     }
 
-    println!("{:?}", coords.values());
+    coords
+        .values()
+        .filter(|x| **x >= 2)
+        .collect::<Vec<&u32>>()
+        .len() as u32
+}
+
+fn p2(lines: Lines) -> u32 {
+    let mut coords: HashMap<(u32, u32), u32> = HashMap::new();
+    for line in lines.horizontal() {
+        for coord in line.coords().unwrap() {
+            let count = coords.entry(coord).or_insert(0);
+            *count += 1;
+        }
+    }
+
+    for line in lines.vertical() {
+        for coord in line.coords().unwrap() {
+            let count = coords.entry(coord).or_insert(0);
+            *count += 1;
+        }
+    }
+    for line in lines.diagonal() {
+        for coord in line.coords().unwrap() {
+            let count = coords.entry(coord).or_insert(0);
+            *count += 1;
+        }
+    }
+
     coords
         .values()
         .filter(|x| **x >= 2)
@@ -122,11 +194,18 @@ mod test {
     use super::*;
 
     #[test]
-    #[ignore]
     fn p1_e2e() {
         let subject: Lines = include_str!("../../inputs/5.example.txt").into();
         let got = p1(subject);
         assert_eq!(got, 5);
+    }
+
+    #[test]
+    #[ignore]
+    fn p2_e2e() {
+        let subject: Lines = include_str!("../../inputs/5.example.txt").into();
+        let got = p2(subject);
+        assert_eq!(got, 12);
     }
 
     #[test]
@@ -172,7 +251,13 @@ mod test {
         let vertical: Line = "2,2 -> 2,1".into();
         let got = vertical.coords().unwrap();
         assert_eq!(got.len(), 2);
-        assert_eq!(got[0], (2, 2));
-        assert_eq!(got[1], (2, 1));
+
+        let diagonal: Line = "1,1 -> 3,3".into();
+        let got = diagonal.coords().unwrap();
+        assert_eq!(got.len(), 3);
+
+        let other_diagonal: Line = "9,7 -> 7,9".into();
+        let got = other_diagonal.coords().unwrap();
+        assert_eq!(got.len(), 3);
     }
 }
