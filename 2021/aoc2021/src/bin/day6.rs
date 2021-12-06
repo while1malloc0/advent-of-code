@@ -54,26 +54,13 @@ mod test {
 
     #[test]
     fn p1_e2e() {
-        let mut subject: FishSchool = include_str!("../../inputs/6.example.txt").into();
-        subject.tick_n(80);
-        assert_eq!(subject.len(), 5934);
+        let subject: FishSchool = include_str!("../../inputs/6.example.txt").into();
+        assert_eq!(subject.len_after(80), 5934);
     }
 
-    #[ignore]
     #[test]
     fn p2_e2e() {
-        let mut subject: FishSchool = include_str!("../../inputs/6.example.txt").into();
-        subject.tick_n(256);
-        assert_eq!(subject.len(), 26984457539);
-    }
-
-    #[test]
-    fn faster_tick() {
         let subject: FishSchool = include_str!("../../inputs/6.example.txt").into();
-        let got = subject.len_after(80);
-        assert_eq!(got, 5934);
-
-        let got = subject.len_after(256);
-        assert_eq!(got, 26984457539);
+        assert_eq!(subject.len_after(256), 26984457539);
     }
 }
