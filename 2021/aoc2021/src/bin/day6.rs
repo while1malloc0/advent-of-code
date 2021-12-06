@@ -1,37 +1,40 @@
-fn main() {
-    let mut p1_subject: FishSchool = include_str!("../../inputs/6.txt").into();
-    p1_subject.tick_n(80);
-    println!("Part 1: {}", p1_subject.len());
+use std::collections::HashMap;
 
-    let mut p2_subject: FishSchool = include_str!("../../inputs/6.txt").into();
-    p2_subject.tick_n(256);
-    println!("Part 2: {}", p2_subject.len());
+fn main() {
+    let p1_subject: FishSchool = include_str!("../../inputs/6.txt").into();
+    let p1_answer = p1_subject.len_after(80);
+    println!("Part 1: {}", p1_answer);
+
+    let p2_subject: FishSchool = include_str!("../../inputs/6.txt").into();
+    let p2_answer = p2_subject.len_after(256);
+    println!("Part 2: {}", p2_answer);
 }
 
 struct FishSchool(Vec<u8>);
 
 impl FishSchool {
-    fn tick_n(&mut self, n: u32) {
-        for _ in 0..n {
-            let mut next = vec![];
-            let mut to_spawn = 0;
-            for i in self.0.clone() {
-                // case 1: counter is 0, spawn, next is 6
-                if i == 0 {
-                    to_spawn += 1;
-                    next.push(6);
-                } else {
-                    // case 2: decrement
-                    next.push(i - 1);
-                }
-            }
-
-            for _ in 0..to_spawn {
-                next.push(8);
-            }
-
-            self.0 = next;
+    fn len_after(&self, n: u32) -> u64 {
+        let mut counts: HashMap<u8, u64> = HashMap::new();
+        for num in self.0.clone() {
+            let count = counts.entry(num).or_insert(0);
+            *count += 1;
         }
+
+        for _ in 0..n {
+            let mut dup = counts.clone();
+            let num_to_spawn = dup.entry(0).or_insert(0);
+            for i in 0..8 {
+                let mut dup = counts.clone();
+                let next = dup.entry(i + 1).or_insert(0);
+                let fish = counts.entry(i).or_insert(0);
+                *fish = *next;
+            }
+            counts.insert(8, *num_to_spawn);
+            let ready = counts.entry(6).or_insert(0);
+            *ready += *num_to_spawn;
+        }
+
+        counts.values().sum()
     }
 
     fn len(&self) -> usize {
@@ -60,10 +63,21 @@ mod test {
         assert_eq!(subject.len(), 5934);
     }
 
+    #[ignore]
     #[test]
     fn p2_e2e() {
         let mut subject: FishSchool = include_str!("../../inputs/6.example.txt").into();
         subject.tick_n(256);
         assert_eq!(subject.len(), 26984457539);
+    }
+
+    #[test]
+    fn faster_tick() {
+        let subject: FishSchool = include_str!("../../inputs/6.example.txt").into();
+        let got = subject.len_after(80);
+        assert_eq!(got, 5934);
+
+        let got = subject.len_after(256);
+        assert_eq!(got, 26984457539);
     }
 }
