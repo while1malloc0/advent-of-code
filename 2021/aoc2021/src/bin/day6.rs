@@ -36,10 +36,6 @@ impl FishSchool {
 
         counts.values().sum()
     }
-
-    fn len(&self) -> usize {
-        self.0.len()
-    }
 }
 
 impl From<&str> for FishSchool {
