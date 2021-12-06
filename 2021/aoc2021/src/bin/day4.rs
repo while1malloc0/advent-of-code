@@ -33,6 +33,7 @@ impl BingoGame {
         let mut cards = self.cards.clone();
         println!("Starting len: {}", cards.len());
         for val in self.uncalled_nums.iter() {
+            println!("Current len: {}", cards.len());
             let mut to_remove = vec![];
             for i in 0..cards.len() {
                 cards[i].mark(*val);
@@ -41,10 +42,13 @@ impl BingoGame {
                     to_remove.push(i);
                 }
             }
-            println!("{:?}", to_remove);
-            for i in to_remove {
-                cards.remove(i);
+            let mut next: Vec<BingoCard> = vec![];
+            for i in 0..cards.len() {
+                if !to_remove.contains(&i) {
+                    next.push(cards[i].clone());
+                }
             }
+            cards = next;
         }
         if winners.is_empty() {
             return Err("no winner found");
