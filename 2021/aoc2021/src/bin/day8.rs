@@ -4,6 +4,10 @@ fn main() {
     let p1_input = include_str!("../../inputs/8.txt");
     let p1_answer = p1(p1_input);
     println!("Part 1: {}", p1_answer);
+
+    let p2_input = include_str!("../../inputs/8.txt");
+    let p2_answer = p2(p2_input);
+    println!("Part 2: {}", p2_answer);
 }
 
 fn p1(input: &str) -> u32 {
@@ -23,7 +27,14 @@ fn p1(input: &str) -> u32 {
 }
 
 fn p2(input: &str) -> u32 {
-    panic!("not implemented yet");
+    let mut sum = 0;
+    for line in input.trim().split("\n") {
+        let mut display: Display = line.into();
+        display.solve();
+        display.decode();
+        sum += display.decoded.unwrap() as u32;
+    }
+    sum
 }
 
 struct Display {
@@ -313,7 +324,20 @@ impl Display {
 
     fn decode(&mut self) {
         let mut decoded_str = "".to_string();
-        for val in self.output.clone() {}
+        if let Some(solved) = self.solved.clone() {
+            for val in self.output.clone() {
+                for key in solved.keys() {
+                    if sorted_equals(&val, &key) {
+                        let num = solved.get(key).unwrap();
+                        decoded_str += num;
+                    }
+                }
+            }
+        } else {
+            panic!("decode called before solve");
+        }
+        let decoded: i32 = decoded_str.parse().expect("could not parse into int");
+        self.decoded = Some(decoded);
     }
 }
 
@@ -339,7 +363,15 @@ impl From<&str> for Display {
     }
 }
 
-fn sorted_eq(left: String, right: String) -> bool {}
+fn sorted_equals(left: &String, right: &String) -> bool {
+    let mut left_vec = left.chars().collect::<Vec<char>>();
+    left_vec.sort_by(|a, b| a.cmp(b));
+
+    let mut right_vec = right.chars().collect::<Vec<char>>();
+    right_vec.sort_by(|a, b| a.cmp(b));
+
+    left_vec == right_vec
+}
 
 mod test {
     use super::*;
@@ -352,7 +384,6 @@ mod test {
         assert_eq!(want, got);
     }
 
-    #[ignore]
     #[test]
     fn p2_e2e() {
         let input = include_str!("../../inputs/8.example.txt");
@@ -428,13 +459,12 @@ mod test {
     }
 
     #[test]
-    #[ignore]
     fn decode() {
         let mut subject: Display = "be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe".into();
         subject.solve();
         subject.decode();
         let got = subject.decoded.unwrap();
-        let want = 5353;
+        let want = 8394;
         assert_eq!(got, want);
     }
 
@@ -442,7 +472,7 @@ mod test {
     fn sorted_eq() {
         let left = "cdfbe".to_string();
         let right = "cdfeb".to_string();
-        let got = sorted_equals(left, right);
+        let got = sorted_equals(&left, &right);
         assert_eq!(got, true);
     }
 }
