@@ -4,6 +4,9 @@ fn main() {
     let input = include_str!("../../inputs/9.txt");
     let p1_answer = p1(input);
     println!("Part 1: {}", p1_answer);
+
+    let p2_answer = p2(input).unwrap();
+    println!("Part 2: {}", p2_answer);
 }
 
 fn p1(input: &str) -> u32 {
@@ -11,6 +14,20 @@ fn p1(input: &str) -> u32 {
     let low_points = heightmap.low_points();
     let risks = low_points.values().map(|x| x + 1);
     risks.sum()
+}
+
+fn p2(input: &str) -> Result<u32, &str> {
+    let heightmap: HeightMap = input.into();
+    let low_points = heightmap.low_points();
+    let mut basins = vec![];
+    for coord in low_points.keys() {
+        let basin = heightmap.basin(coord.0, coord.1).unwrap();
+        basins.push(basin.len());
+    }
+    basins.sort();
+    let three_largest: Vec<usize> = basins.into_iter().rev().take(3).collect();
+    let answer = three_largest[0] * three_largest[1] * three_largest[2];
+    Ok(answer as u32)
 }
 
 struct HeightMap(HashMap<(u32, u32), u32>);
@@ -23,32 +40,23 @@ impl HeightMap {
         self.0.get(&(x as u32, y as u32))
     }
 
-    fn neighbors(&self, x: i32, y: i32) -> Result<Vec<u32>, &str> {
+    fn neighbors(&self, x: i32, y: i32) -> Result<Vec<(u32, u32)>, &str> {
         if x < 0 || y < 0 {
             return Err("X and Y cannot be less than 0");
         }
 
-        let mut neighbors: Vec<u32> = vec![];
+        let mut neighbors: Vec<(u32, u32)> = vec![];
 
-        let left = self.get(x - 1, y);
-        if let Some(i) = left {
-            neighbors.push(*i);
+        if x - 1 >= 0 {
+            neighbors.push(((x - 1) as u32, y as u32))
         }
 
-        let top = self.get(x, y - 1);
-        if let Some(i) = top {
-            neighbors.push(*i);
+        if y - 1 >= 0 {
+            neighbors.push((x as u32, (y - 1) as u32));
         }
 
-        let right = self.get(x + 1, y);
-        if let Some(i) = right {
-            neighbors.push(*i);
-        }
-
-        let bottom = self.get(x, y + 1);
-        if let Some(i) = bottom {
-            neighbors.push(*i);
-        }
+        neighbors.push(((x + 1) as u32, y as u32));
+        neighbors.push((x as u32, (y + 1) as u32));
 
         Ok(neighbors)
     }
@@ -57,7 +65,13 @@ impl HeightMap {
         let mut low_points: HashMap<(u32, u32), u32> = HashMap::new();
         for (coord, val) in &self.0 {
             let (x, y) = coord;
-            let neighbors = self.neighbors(*x as i32, *y as i32).unwrap();
+            let neighbor_coords = self.neighbors(*x as i32, *y as i32).unwrap();
+            let mut neighbors = vec![];
+            for ncoord in neighbor_coords {
+                if let Some(nc) = self.get(ncoord.0 as i32, ncoord.1 as i32) {
+                    neighbors.push(*nc);
+                }
+            }
             if is_smallest(*val, neighbors) {
                 low_points.insert((*x, *y), *val);
             }
@@ -65,14 +79,24 @@ impl HeightMap {
         low_points
     }
 
-    fn basins(&self) -> Vec<&HashSet<(u32, u32)>> {
-        let result = vec![];
+    fn basin(&self, x: u32, y: u32) -> Result<HashSet<(u32, u32)>, &str> {
+        let mut basin: HashSet<(u32, u32)> = HashSet::new();
+        let mut stack: Vec<(u32, u32)> = vec![(x, y)];
+        while stack.len() > 0 {
+            let coord = stack.pop().unwrap();
+            basin.insert(coord);
+            let val = self.get(coord.0 as i32, coord.1 as i32).unwrap();
+            let neighbors = self.neighbors(coord.0 as i32, coord.1 as i32).unwrap();
+            for neighbor in neighbors {
+                if let Some(neighbor_val) = self.get(neighbor.0 as i32, neighbor.1 as i32) {
+                    if neighbor_val > val && *neighbor_val != 9 {
+                        stack.push(neighbor);
+                    }
+                }
+            }
+        }
 
-        let low_points = self.low_points();
-        let stack: Vec<(u32, u32)> = low_points.keys().into_iter().map(|x| *x).collect();
-        println!("{:?}", stack);
-
-        result
+        Ok(basin)
     }
 }
 
@@ -109,6 +133,14 @@ mod test {
     }
 
     #[test]
+    fn p2_e2e() {
+        let input = include_str!("../../inputs/9.example.txt");
+        let got = p2(input).unwrap();
+        let want = 1134;
+        assert_eq!(got, want);
+    }
+
+    #[test]
     fn test_parse() {
         let input = include_str!("../../inputs/9.example.txt");
         let subject: HeightMap = input.into();
@@ -122,7 +154,7 @@ mod test {
         let input = include_str!("../../inputs/9.example.txt");
         let subject: HeightMap = input.into();
         let got = subject.neighbors(0, 0).unwrap();
-        let want = vec![1, 3];
+        let want = vec![(1, 0), (0, 1)];
         assert_eq!(got, want)
     }
 
@@ -152,12 +184,12 @@ mod test {
     fn test_basins() {
         let input = include_str!("../../inputs/9.example.txt");
         let subject: HeightMap = input.into();
-        let got = subject.basins();
-        let check = got[0];
+        let got = subject.basin(1, 0).unwrap();
+        let check = got;
         let mut want: HashSet<(u32, u32)> = HashSet::new();
         want.insert((0, 0));
         want.insert((0, 1));
         want.insert((1, 0));
-        assert_eq!(check, &want);
+        assert_eq!(check, want);
     }
 }
