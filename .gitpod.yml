@@ -1,8 +1,8 @@
 tasks:
-  - name: Set Rust version to nightly
-    command: rustup default nightly
+  - name: Set Rust version to working nightly
+    command: rustup default nightly-2021-12-05
   - name: Install Rust tooling
-    command: rustup component add --toolchain nightly-x86_64-unknown-linux-gnu rust-analysis rust-src rls clippy
+    command: rustup component add rust-analysis rust-src rls clippy
   - name: Install entr
     command: sudo apt update && sudo apt install entr
 vscode:
