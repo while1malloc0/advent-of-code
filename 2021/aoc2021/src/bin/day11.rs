@@ -30,6 +30,7 @@ impl Board {
     }
 
     fn handle_flashes(&mut self) {
+        // TODO this isn't right. It should do all of the increments and THEN do all of the clears, not in stages
         let mut i = 0;
         loop {
             println!("{}: {:?}", i, self);
