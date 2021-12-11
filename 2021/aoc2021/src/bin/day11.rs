@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt;
 
 fn main() {
     unreachable!();
@@ -8,7 +9,7 @@ fn p1(input: &str) -> u64 {
     panic!("not yet implemented")
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq)]
 struct Board(HashMap<(u8, u8), u8>);
 
 impl Board {
@@ -29,7 +30,9 @@ impl Board {
     }
 
     fn handle_flashes(&mut self) {
+        let mut i = 0;
         loop {
+            println!("{}: {:?}", i, self);
             let above_nine: Vec<(u8, u8)> = self
                 .0
                 .clone()
@@ -52,6 +55,7 @@ impl Board {
                 let current = self.0.entry(coord).or_default();
                 *current = 0;
             }
+            i += 1;
         }
     }
 
@@ -88,6 +92,22 @@ impl From<&str> for Board {
             }
         }
         Self(content)
+    }
+}
+
+impl fmt::Debug for Board {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut s: String = String::from("");
+        s.push_str("\n");
+        for y in 0..=9 {
+            for x in 0..=9 {
+                if let Some(val) = self.get(x, y) {
+                    s.push_str(&val.to_string());
+                }
+            }
+            s.push_str("\n");
+        }
+        f.write_str(&s.trim_end())
     }
 }
 
