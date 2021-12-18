@@ -44,8 +44,20 @@ func (o OctopusMap) Flash() {
 	}
 
 	for len(stack) > 0 {
+		// pop
 		var elem Coord
 		elem, stack = stack[len(stack)-1], stack[:len(stack)-1]
+
+		// check if visited
+		if contains(visited, elem) {
+			continue
+		}
+
+		// inc
+		o[elem]++
+		if o[elem] > 9 {
+			stack = append(stack, neighbors(elem[0], elem[1])...)
+		}
 
 		visited = append(visited, elem)
 	}
@@ -103,4 +115,13 @@ func neighbors(x, y int) []Coord {
 		result = append(result, c)
 	}
 	return result
+}
+
+func contains(haystack []Coord, needle Coord) bool {
+	for i := range haystack {
+		if haystack[i] == needle {
+			return true
+		}
+	}
+	return false
 }
