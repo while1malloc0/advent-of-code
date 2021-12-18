@@ -39,8 +39,15 @@ func (o OctopusMap) Flash() {
 
 	for k, v := range o {
 		if v > 9 {
-			stack = append(stack, k)
+			stack = append(stack, neighbors(k[0], k[1])...)
 		}
+	}
+
+	for len(stack) > 0 {
+		var elem Coord
+		elem, stack = stack[len(stack)-1], stack[:len(stack)-1]
+
+		visited = append(visited, elem)
 	}
 }
 
