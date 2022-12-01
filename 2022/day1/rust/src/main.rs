@@ -25,20 +25,33 @@ fn cell_sum(cell: &str) -> i64 {
     parsed.iter().sum()
 }
 
+fn top_n(input: Vec<i64>, n: usize) -> Vec<i64> {
+    let mut sorted = input.clone();
+    sorted.sort();
+    sorted.reverse();
+    sorted[0..n].into()
+}
+
 fn part_one(input: String) -> String {
-    let cells = input.split("\n\n");
-    let sums = cells.map(|cell| cell_sum(cell));
-    let answer = sums.max().unwrap();
-    answer.to_string()
+    // actual readable version
+    // let cells = input.split("\n\n");
+    // let sums = cells.map(|cell| cell_sum(cell));
+    // let answer = sums.max().unwrap();
+    // answer.to_string()
+
+    // cheeky one-liner version
+    input
+        .split("\n\n")
+        .map(|cell| cell_sum(cell))
+        .max()
+        .unwrap()
+        .to_string()
 }
 
 fn part_two(input: String) -> String {
     let cells = input.split("\n\n");
-    let sums = cells.map(|cell| cell_sum(cell));
-    let mut sorted: Vec<i64> = sums.collect();
-    sorted.sort();
-    sorted.reverse();
-    let top_three: Vec<i64> = sorted[0..3].into();
+    let sums: Vec<i64> = cells.map(|cell| cell_sum(cell)).collect();
+    let top_three = top_n(sums, 3);
     let answer: i64 = top_three.iter().sum();
     answer.to_string()
 }
