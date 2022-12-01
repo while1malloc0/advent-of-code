@@ -2,12 +2,36 @@ import argparse
 from os import path
 
 
-def part_one(input):
-    return input
+def part_one(input: str):
+    # cells = input.split("\n\n")
+    # sums = []
+    # for cell in cells:
+    #     s = sum([int(c) for c in cell.split("\n")])
+    #     sums.append(s)
+
+    # return max(sums)
+
+    return max(
+        [
+            sum(y)
+            for y in [
+                map(lambda x: int(x), x)
+                for x in [cell.split("\n") for cell in input.split("\n\n")]
+            ]
+        ]
+    )
 
 
 def part_two(input):
-    return input
+    cells = input.split("\n\n")
+    sums = []
+    for cell in cells:
+        s = sum([int(c) for c in cell.split("\n")])
+        sums.append(s)
+
+    sums = sorted(sums)
+    sums.reverse()
+    return sum(sums[0:3])
 
 
 parser = argparse.ArgumentParser(prog="aoc")
