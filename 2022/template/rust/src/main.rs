@@ -22,12 +22,11 @@ fn part_two(input: String) -> String {
 fn main() {
     let cli = CLI::parse();
 
-    let mut in_type = "input";
+    let mut in_file_name = "input.txt";
     if cli.example {
-        in_type = "example";
+        in_file_name = "example.txt";
     }
 
-    let in_file_name = format!("{}.{}.txt", cli.part, in_type);
     let in_file_path = PathBuf::from(format!("../data/{}", in_file_name));
     let in_file = fs::canonicalize(&in_file_path).expect("could not canonicalize file");
     let input = fs::read_to_string(in_file).expect("could not read file").to_string();

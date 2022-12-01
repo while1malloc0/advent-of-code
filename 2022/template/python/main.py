@@ -20,11 +20,7 @@ def main():
     if args.part not in (1, 2):
         raise TypeError("part argument must be one of: 1 or 2")
 
-    in_type = "input"
-    if args.example:
-        in_type = "example"
-
-    in_file_name = f"{args.part}.{in_type}.txt"
+    in_file_name = "example.txt" if args.example else "input.txt"
     in_file_path = path.abspath(__file__ + f"/../../data/{in_file_name}")
     input = ""
     with open(in_file_path) as f:
