@@ -12,7 +12,7 @@ struct CLI {
 }
 
 fn read_data_file(filename: &str) -> String {
-    let in_file_path = PathBuf::from(format!("../data/{}", filename));
+    let in_file_path = PathBuf::from(format!("./data/{}", filename));
     let in_file = fs::canonicalize(&in_file_path).expect("could not canonicalize file");
     fs::read_to_string(in_file)
         .expect("could not read file")
