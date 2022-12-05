@@ -1,6 +1,5 @@
 use clap::Parser;
 use std::collections::HashSet;
-use std::ffi::IntoStringError;
 use std::fs;
 use std::path::PathBuf;
 
@@ -41,6 +40,32 @@ fn calc_intersection(lhs: &String, rhs: &String) -> Option<char> {
     }
 }
 
+fn calc_intersection_three(fst: &String, snd: &String, trd: &String) -> Option<char> {
+    let mut fst_hash: HashSet<char> = HashSet::new();
+    for c in fst.chars() {
+        fst_hash.insert(c);
+    }
+
+    let mut snd_hash: HashSet<char> = HashSet::new();
+    for c in snd.chars() {
+        snd_hash.insert(c);
+    }
+
+    let mut trd_hash: HashSet<char> = HashSet::new();
+    for c in trd.chars() {
+        trd_hash.insert(c);
+    }
+
+    let mut inter = &fst_hash & &snd_hash;
+    inter = &inter & &trd_hash;
+
+    if inter.is_empty() {
+        None
+    } else {
+        Some(inter.iter().collect::<Vec<&char>>()[0].clone())
+    }
+}
+
 fn convert(input: Option<char>) -> usize {
     match input {
         None => 0,
@@ -67,7 +92,14 @@ fn part_one(input: String) -> String {
 }
 
 fn part_two(input: String) -> String {
-    input
+    let mut result = 0;
+    let groups = input.lines().map(|s| s.to_owned()).collect::<Vec<String>>();
+    let gps = groups.chunks(3);
+    for g in gps {
+        let inter = calc_intersection_three(&g[0], &g[1], &g[2]);
+        result += convert(inter);
+    }
+    format!("{}", result)
 }
 
 fn main() {
@@ -96,6 +128,14 @@ mod tests {
         let input = read_data_file("example.txt");
         let got = part_one(input);
         let want = "157";
+        assert_eq!(got, want);
+    }
+
+    #[test]
+    fn test_example_p2() {
+        let input = read_data_file("example.txt");
+        let got = part_two(input);
+        let want = "70";
         assert_eq!(got, want);
     }
 }
