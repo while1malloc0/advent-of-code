@@ -46,6 +46,8 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
     fn example_p1() {
         let input = read_data_file("example.txt");
