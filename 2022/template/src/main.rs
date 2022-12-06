@@ -43,3 +43,23 @@ fn main() {
         println!("{}", part_two(input))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn example_p1() {
+        let input = read_data_file("example.txt");
+        let got = part_one(input);
+        let want = "<replace me>";
+        assert_eq!(want, got);
+    }
+
+    #[test]
+    #[ignore]
+    fn example_p2() {
+        let input = read_data_file("example.txt");
+        let got = part_two(input);
+        let want = "<replace me>";
+        assert_eq!(want, got);
+    }
+}
