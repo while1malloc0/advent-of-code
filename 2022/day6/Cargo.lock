@@ -52,41 +52,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "day2"
-version = "0.1.0"
-dependencies = [
- "clap",
-]
-
-[[package]]
-name = "day3"
-version = "0.1.0"
-dependencies = [
- "clap",
-]
-
-[[package]]
-name = "day4"
-version = "0.1.0"
-dependencies = [
- "clap",
-]
-
-[[package]]
-name = "day5"
-version = "0.1.0"
-dependencies = [
- "clap",
-]
-
-[[package]]
-name = "day6"
-version = "0.1.0"
-dependencies = [
- "clap",
-]
-
-[[package]]
 name = "errno"
 version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -239,9 +204,9 @@ checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
 
 [[package]]
 name = "syn"
-version = "1.0.105"
+version = "1.0.104"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "60b9b43d45702de4c839cb9b51d9f529c5dd26a4aff255b42b1ebc03e88ee908"
+checksum = "4ae548ec36cf198c0ef7710d3c230987c2d6d7bd98ad6edc0274462724c585ce"
 dependencies = [
  "proc-macro2",
  "quote",
