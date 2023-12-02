@@ -58,21 +58,21 @@ func TestExtractNamedDigits(t *testing.T) {
 	testCases := []struct {
 		desc  string
 		input string
-		want  string
+		want  int
 	}{
-		{"", "two1nine", "29"},
-		{"", "eightwothree", "83"},
-		{"", "abcone2threexyz", "13"},
-		{"", "xtwone3four", "24"},
-		{"", "4nineeightseven2", "42"},
-		{"", "zoneight234", "14"},
-		{"", "7pqrstsixteen", "76"},
+		{"", "two1nine", 29},
+		{"", "eightwothree", 83},
+		{"", "abcone2threexyz", 13},
+		{"", "xtwone3four", 24},
+		{"", "4nineeightseven2", 42},
+		{"", "zoneight234", 14},
+		{"", "7pqrstsixteen", 76},
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
 			got := ExtractNamedDigits(tC.input)
 			if tC.want != got {
-				t.Fatalf("ExtractDigits failed, expected %d, got %d", tC.want, got)
+				t.Fatalf("ExtractNamedDigits failed, expected %d, got %d", tC.want, got)
 			}
 		})
 	}
