@@ -59,6 +59,13 @@ def test_rules_check():
     assert want == got
 
 
+def test_rules_check_break():
+    subject = Rules.from_str(example_rule_table)
+    got = subject.check([97, 13, 75, 29, 47])
+    want = False
+    assert want == got
+
+
 def test_rule_from_str():
     input = "47|53"
     want = Rule(47, 53)
@@ -66,7 +73,23 @@ def test_rule_from_str():
     assert want == got
 
 
+def test_rules_correct():
+    subject = Rules.from_str(example_rule_table)
+    input = [75, 97, 47, 61, 53]
+    want = [97, 75, 47, 61, 53]
+    got = subject.correct(input)
+    assert want == got
+
+
+def test_rules_correct_short():
+    subject = Rules.from_str(example_rule_table)
+    input = [61, 13, 29]
+    want = [61, 29, 13]
+    got = subject.correct(input)
+    assert want == got
+
+
 def test_e2e_p2():
     got = p2("example.txt")
-    want = FIXME
+    want = 123
     assert want == got
