@@ -1,4 +1,5 @@
 from typing import Dict, Set, Tuple
+from copy import deepcopy
 
 
 class Grid:
@@ -27,6 +28,10 @@ class Grid:
 
         g.coords = coords
         g.dir = "u"
+        g.current_loop = set()
+        g.last_loop = set()
+        g.size_x = len(twod)
+        g.size_y = len(twod[0])
 
         return g
 
@@ -38,6 +43,11 @@ class Grid:
         self.start_pos = start_pos
         self.current_pos = start_pos
         self.dir = "u"
+        self.last_loop = None
+        self.current_loop = set()
+        self.looping = False
+        self.size_x = 0
+        self.size_y = 0
 
     def play(self):
         while self.tick():
@@ -45,6 +55,7 @@ class Grid:
         return len(self.visited)
 
     def tick(self):
+        # we're looping
         next_pos = self._next_pos()
 
         next_space = self.coords.get(next_pos, None)
@@ -59,6 +70,13 @@ class Grid:
             if not next_space:
                 return False
 
+        print("c {}".format(self.current_loop))
+        print("l {}".format(self.last_loop))
+        if self.current_loop and self.last_loop and self.current_loop == self.last_loop:
+            self.looping = True
+            return False
+
+        self.current_loop.add(self.current_pos)
         self.current_pos = next_pos
         self.visited.add(self.current_pos)
 
@@ -83,6 +101,8 @@ class Grid:
             self.dir = "l"
         elif self.dir == "l":
             self.dir = "u"
+            self.last_loop = deepcopy(self.current_loop)
+            self.current_loop.clear()
         elif self.dir == "r":
             self.dir = "d"
         else:
@@ -100,7 +120,17 @@ def p1(input: str) -> int:
 
 def p2(input: str) -> int:
     with open(input) as content:
-        pass
+        loops = 0
+        grid = Grid.from_str(content.read().strip())
+        for x in range(grid.size_x):
+            for y in range(grid.size_y):
+                cp = deepcopy(grid)
+                if cp.coords.get((x, y)) != "#":
+                    cp.coords[(x, y)] = "#"
+                    cp.play()
+                    if cp.looping:
+                        loops += 1
+        return loops
 
 
 if __name__ == "__main__":

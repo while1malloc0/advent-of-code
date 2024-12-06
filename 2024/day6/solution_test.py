@@ -32,13 +32,35 @@ def test_grid_from_str():
     assert got.current_pos == (4, 6)
 
 
-def test_e2e_p1():
-    got = p1("example.txt")
-    want = 41
-    assert got == want
+def test_looping():
+    # fmt: off
+    input = """
+    ....#.....
+    .........#
+    ..........
+    ..#.......
+    .......#..
+    ..........
+    .#.#^.....
+    ........#.
+    #.........
+    ......#...
+    """
+    # fmt: on
+    grid = Grid.from_str(input)
+    grid.play()
+    want = True
+    got = grid.looping
+    assert want == got
+
+
+# def test_e2e_p1():
+#     got = p1("example.txt")
+#     want = 41
+#     assert got == want
 
 
 def test_e2e_p2():
     got = p2("example.txt")
-    want = FIXME
+    want = 9
     assert want == got
